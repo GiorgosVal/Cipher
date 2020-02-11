@@ -1,8 +1,11 @@
 package options;
 
+import org.junit.Before;
 import org.junit.Test;
 import utils.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -10,7 +13,18 @@ import java.util.Objects;
 import static org.junit.Assert.*;
 
 public class OptionsLoaderTest {
-    OptionsLoader optionsLoader = new OptionsLoader();
+    OptionsLoader optionsLoader = OptionsLoader.getOptionsLoader();
+    Method isRelativeOptionPresent = null;
+
+    @Before
+    public void loadPrivateMethods() {
+        try {
+            isRelativeOptionPresent = OptionsLoader.class.getDeclaredMethod("isRelativeOptionPresent", Option.class, Map.class);
+            isRelativeOptionPresent.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void testLoadOptions_for_an_option_with_no_value() {
@@ -88,30 +102,31 @@ public class OptionsLoaderTest {
     }
 
     @Test
-    public void testIsRelativeOptionPresent_case_true() {
+    public void testIsRelativeOptionPresent_case_true() throws InvocationTargetException, IllegalAccessException {
         Map<Option, String> options = new HashMap<>();
         Option h = Option.H;
         Option help = Option.HELP;
         options.put(h, null);
-        assertTrue(optionsLoader.isRelativeOptionPresent(help, options));
-        assertTrue(optionsLoader.isRelativeOptionPresent(h, options));
+        assertTrue((boolean)isRelativeOptionPresent.invoke(optionsLoader, help, options));
+        assertTrue((boolean)isRelativeOptionPresent.invoke(optionsLoader, h, options));
+
     }
 
     @Test
-    public void testIsRelativeOptionPresent_case_false() {
+    public void testIsRelativeOptionPresent_case_false() throws InvocationTargetException, IllegalAccessException {
         Map<Option, String> options = new HashMap<>();
         Option h = Option.H;
         Option about = Option.ABOUT;
         options.put(h, null);
-        assertFalse(optionsLoader.isRelativeOptionPresent(about, options));
+        assertFalse((boolean)isRelativeOptionPresent.invoke(optionsLoader, about, options));
     }
 
     @Test
-    public void testIsRelativeOptionPresent_case_null() {
+    public void testIsRelativeOptionPresent_case_null() throws InvocationTargetException, IllegalAccessException {
         Map<Option, String> options = new HashMap<>();
         Option h = Option.H;
         options.put(h, null);
-        assertFalse(optionsLoader.isRelativeOptionPresent(null, options));
+        assertFalse((boolean)isRelativeOptionPresent.invoke(optionsLoader, null, options));
     }
 
     @Test
